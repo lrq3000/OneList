@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.view.MotionEvent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import com.anggrayudi.storage.SimpleStorageHelper
 import com.lolo.io.onelist.updates.ReleaseNote
 import com.lolo.io.onelist.updates.show
 import com.lolo.io.onelist.util.REQUEST_CODE_OPEN_DOCUMENT
@@ -17,6 +18,7 @@ import io.github.tonnyl.whatsnew.WhatsNew
 class MainActivity : AppCompatActivity() {
 
     val persistence: PersistenceHelper by lazy { PersistenceHelper(this) }
+    val storageHelper = SimpleStorageHelper(this)
 
     // On some devices, displaying storage chooser fragment before activity is resumed leads to a crash.
     // This is a workaround.

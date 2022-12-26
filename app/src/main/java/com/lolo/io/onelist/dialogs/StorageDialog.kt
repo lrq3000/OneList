@@ -3,6 +3,7 @@ package com.lolo.io.onelist.dialogs
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Toast
@@ -70,9 +71,15 @@ fun selectDirectory(activity: MainActivity, onPathChosen: (String) -> Any?) {
     withStoragePermission(activity) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             activity.onPathChosenActivityResult = onPathChosen
-            activity.startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
-                addFlags(Intent.FLAG_GRANT_PREFIX_URI_PERMISSION)
-            }, REQUEST_CODE_OPEN_DOCUMENT_TREE)
+            //activity.startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+            //    addFlags(Intent.FLAG_GRANT_PREFIX_URI_PERMISSION)
+            //}, REQUEST_CODE_OPEN_DOCUMENT_TREE)
+            Log.d("MyApp", "Debugv Before SimpleStorageHelper callback func def")
+            activity.storageHelper.onFolderSelected = { requestCode, folder ->
+                Log.d("MyApp", "Debugv Success!")
+            }
+            Log.d("MyApp", "Debugv Before Folder Picker")
+            activity.storageHelper.openFolderPicker()
         } else {
             @Suppress("DEPRECATION")
             StorageChooser.Builder()
