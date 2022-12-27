@@ -70,7 +70,7 @@ val ItemList.fileName
 
 val String?.toUri: Uri?
     get() = try {
-        if (this.isNullOrBlank() || !startsWith("content://")) throw Exception()
+        if (this.isNullOrBlank() /* || !startsWith("content://") */) throw Exception()
         Uri.parse(this)
     } catch (e: Exception) {
         null

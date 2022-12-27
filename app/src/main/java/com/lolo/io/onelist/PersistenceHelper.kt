@@ -19,6 +19,7 @@ import java.io.InputStream
 import java.util.*
 import com.anggrayudi.storage.file.DocumentFileCompat
 import com.anggrayudi.storage.file.openOutputStream
+import com.lolo.io.onelist.util.getNewPath
 
 class PersistenceHelper(private val app: Activity) {
 
@@ -203,21 +204,28 @@ class PersistenceHelper(private val app: Activity) {
 
     fun saveList(list: ItemList) {
         val sp = app.getPreferences(Context.MODE_PRIVATE)
+        Log.d("MyApp", "Debugv saveList defaultPath: " + defaultPath)
         val editor = sp.edit()
         val gson = Gson()
         val json = gson.toJson(list)
         Log.d("MyApp", "Debugv saveList")
         try {
-            val fileUri = list.path.toUri
-            Log.d("MyApp", "Debugv saveList try")
+            val path = defaultPath + list.getNewPath(list.title)
+            //val fileUri = list.path.toUri
+            val fileUri = path.toUri
+            Log.d("MyApp", "Debugv saveList try: " + path.toString())
             fileUri?.let { uri ->
-                Log.d("MyApp", "Debugv saveList let")
                 Log.d("MyApp", "Debugv Trying to save list to to " + uri.toString())
-                val out = DocumentFile.fromSingleUri(app, uri)!!.openOutputStream(app)
+                //val out = DocumentFile.fromSingleUri(app, uri)!!.openOutputStream(app)
+                val out = DocumentFileCompat.fromUri(app, uri)!!.openOutputStream(app)
+                //val out = App.instance.contentResolver.openOutputStream(uri)
                 try {
+                    Log.d("MyApp", "Debugv saveList try to write")
                     out!!.write(json.toByteArray(Charsets.UTF_8)) // NPE is catched below
+                    Log.d("MyApp", "Debugv saveList write successful!")
                 } catch (e: Exception) {
-                    app.runOnUiThread { Toast.makeText(App.instance, app.getString(R.string.error_saving_to_path, list.path), Toast.LENGTH_LONG).show() }
+                    app.runOnUiThread { Toast.makeText(App.instance, app.getString(R.string.error_saving_to_path, uri), Toast.LENGTH_LONG).show() }
+                    Log.d("MyApp", "Debugv saveList unable to write: " + e.stackTraceToString())
                 } finally {
                     out?.close()
                 }
