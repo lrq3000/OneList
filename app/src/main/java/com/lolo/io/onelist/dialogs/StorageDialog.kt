@@ -19,6 +19,8 @@ import com.lolo.io.onelist.util.withStoragePermission
 import kotlinx.android.synthetic.main.dialog_list_path.view.*
 import java.io.File
 import java.net.URI
+import com.anggrayudi.storage.file.FileFullPath
+import com.anggrayudi.storage.file.getAbsolutePath
 
 
 @SuppressLint("InflateParams")
@@ -76,12 +78,12 @@ fun selectDirectory(activity: MainActivity, onPathChosen: (String) -> Any?) {
             //}, REQUEST_CODE_OPEN_DOCUMENT_TREE)
             Log.d("MyApp", "Debugv Before SimpleStorageHelper callback func def")
             activity.storageHelper.onStorageAccessGranted = { requestCode, root ->
-                activity.onPathChosenActivityResult(root.toString())
+                activity.onPathChosenActivityResult(root.getAbsolutePath(activity))
                 activity.onPathChosenActivityResult = { }
             }
-            activity.storageHelper.onFolderSelected = { requestCode, uri ->
+            activity.storageHelper.onFolderSelected = { requestCode, folder ->
                 Log.d("MyApp", "Debugv Success Folder Pick! Now saving...")
-                activity.onPathChosenActivityResult(uri.toString())
+                activity.onPathChosenActivityResult(folder.getAbsolutePath(activity)) // tip from https://github.com/anggrayudi/MaterialPreference/blob/5cd9b8653c71fae0314fa2bbf7f71c4c8c8f4104/materialpreference/src/main/java/com/anggrayudi/materialpreference/FolderPreference.kt
                 activity.onPathChosenActivityResult = { }
                 Log.d("MyApp", "Debugv Success Folder Pick Save!")
             }
