@@ -75,11 +75,21 @@ fun selectDirectory(activity: MainActivity, onPathChosen: (String) -> Any?) {
             //    addFlags(Intent.FLAG_GRANT_PREFIX_URI_PERMISSION)
             //}, REQUEST_CODE_OPEN_DOCUMENT_TREE)
             Log.d("MyApp", "Debugv Before SimpleStorageHelper callback func def")
-            activity.storageHelper.onFolderSelected = { requestCode, folder ->
-                Log.d("MyApp", "Debugv Success!")
+            activity.storageHelper.onStorageAccessGranted = { requestCode, root ->
+                activity.onPathChosenActivityResult(root.toString())
+                activity.onPathChosenActivityResult = { }
             }
+            activity.storageHelper.onFolderSelected = { requestCode, uri ->
+                Log.d("MyApp", "Debugv Success Folder Pick! Now saving...")
+                activity.onPathChosenActivityResult(uri.toString())
+                activity.onPathChosenActivityResult = { }
+                Log.d("MyApp", "Debugv Success Folder Pick Save!")
+            }
+            Log.d("MyApp", "Debugv Get Storage Access permission")
+            activity.storageHelper.requestStorageAccess()
             Log.d("MyApp", "Debugv Before Folder Picker")
             activity.storageHelper.openFolderPicker()
+            Log.d("MyApp", "Debugv After Folder Picker!")
         } else {
             @Suppress("DEPRECATION")
             StorageChooser.Builder()
