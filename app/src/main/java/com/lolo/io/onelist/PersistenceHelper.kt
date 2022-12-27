@@ -5,7 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.preference.PreferenceManager
+import android.util.Log
 import android.widget.Toast
+import androidx.documentfile.provider.DocumentFile
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.lolo.io.onelist.model.ItemList
@@ -15,6 +17,8 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.util.*
+import com.anggrayudi.storage.file.DocumentFileCompat
+import com.anggrayudi.storage.file.openOutputStream
 
 class PersistenceHelper(private val app: Activity) {
 
@@ -191,6 +195,7 @@ class PersistenceHelper(private val app: Activity) {
     }
 
     fun saveListAsync(list: ItemList) {
+        Log.d("MyApp", "Debugv saveListAsync")
         GlobalScope.launch {
             saveList(list)
         }
@@ -201,10 +206,14 @@ class PersistenceHelper(private val app: Activity) {
         val editor = sp.edit()
         val gson = Gson()
         val json = gson.toJson(list)
+        Log.d("MyApp", "Debugv saveList")
         try {
             val fileUri = list.path.toUri
+            Log.d("MyApp", "Debugv saveList try")
             fileUri?.let { uri ->
-                val out = App.instance.contentResolver.openOutputStream(uri)
+                Log.d("MyApp", "Debugv saveList let")
+                Log.d("MyApp", "Debugv Trying to save list to to " + uri.toString())
+                val out = DocumentFile.fromSingleUri(app, uri)!!.openOutputStream(app)
                 try {
                     out!!.write(json.toByteArray(Charsets.UTF_8)) // NPE is catched below
                 } catch (e: Exception) {

@@ -19,6 +19,7 @@ import com.lolo.io.onelist.util.withStoragePermission
 import kotlinx.android.synthetic.main.dialog_list_path.view.*
 import java.io.File
 import java.net.URI
+import com.anggrayudi.storage.SimpleStorage
 import com.anggrayudi.storage.file.FileFullPath
 import com.anggrayudi.storage.file.getAbsolutePath
 
@@ -86,11 +87,13 @@ fun selectDirectory(activity: MainActivity, onPathChosen: (String) -> Any?) {
                 activity.onPathChosenActivityResult(folder.getAbsolutePath(activity)) // tip from https://github.com/anggrayudi/MaterialPreference/blob/5cd9b8653c71fae0314fa2bbf7f71c4c8c8f4104/materialpreference/src/main/java/com/anggrayudi/materialpreference/FolderPreference.kt
                 activity.onPathChosenActivityResult = { }
                 Log.d("MyApp", "Debugv Success Folder Pick Save!")
+                Log.d("MyApp", "Debugv Try to create a file")
+                activity.storageHelper.createFile("text/plain", "Test create file")
             }
-            Log.d("MyApp", "Debugv Get Storage Access permission")
-            activity.storageHelper.requestStorageAccess()
+            //Log.d("MyApp", "Debugv Get Storage Access permission")
+            //activity.storageHelper.requestStorageAccess()
             Log.d("MyApp", "Debugv Before Folder Picker")
-            activity.storageHelper.openFolderPicker()
+            activity.storageHelper.openFolderPicker(initialPath = FileFullPath(activity, SimpleStorage.externalStoragePath))
             Log.d("MyApp", "Debugv After Folder Picker!")
         } else {
             @Suppress("DEPRECATION")
