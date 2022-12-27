@@ -22,6 +22,9 @@ import java.net.URI
 import com.anggrayudi.storage.SimpleStorage
 import com.anggrayudi.storage.file.FileFullPath
 import com.anggrayudi.storage.file.getAbsolutePath
+import com.anggrayudi.storage.file.makeFile
+import com.anggrayudi.storage.file.openOutputStream
+import com.lolo.io.onelist.updates.appContext
 
 
 @SuppressLint("InflateParams")
@@ -80,21 +83,34 @@ fun selectDirectory(activity: MainActivity, onPathChosen: (String) -> Any?) {
             Log.d("MyApp", "Debugv Before SimpleStorageHelper callback func def")
             activity.storageHelper.onStorageAccessGranted = { requestCode, root ->
                 activity.onPathChosenActivityResult(root.getAbsolutePath(activity))
-                activity.onPathChosenActivityResult = { }
+                //activity.onPathChosenActivityResult = { }
             }
             activity.storageHelper.onFolderSelected = { requestCode, folder ->
                 Log.d("MyApp", "Debugv Success Folder Pick! Now saving...")
                 activity.onPathChosenActivityResult(folder.getAbsolutePath(activity)) // tip from https://github.com/anggrayudi/MaterialPreference/blob/5cd9b8653c71fae0314fa2bbf7f71c4c8c8f4104/materialpreference/src/main/java/com/anggrayudi/materialpreference/FolderPreference.kt
-                activity.onPathChosenActivityResult = { }
+                //activity.onPathChosenActivityResult = { }
                 Log.d("MyApp", "Debugv Success Folder Pick Save!")
-                Log.d("MyApp", "Debugv Try to create a file")
-                activity.storageHelper.createFile("text/plain", "Test create file")
+                Log.d("MyApp", "Debugv Try to create a file testfilename.txt")
+                val newFile = folder.makeFile(appContext, "testfilename.txt", "text/*")
+                Log.d("MyApp", "Debugv Try to write in the file testfilename.txt")
+                val out = newFile!!.openOutputStream(appContext)
+                try {
+                    Log.d("MyApp", "Debugv Write test file...")
+                    out!!.write("Lalala".toByteArray(Charsets.UTF_8))
+                    Log.d("MyApp", "Debugv Write test file successful!")
+                } catch (e: Exception) {
+                    Log.d("MyApp", "Debugv unable to write test file: " + e.stackTraceToString())
+                } finally {
+                    out?.close()
+                }
             }
             //Log.d("MyApp", "Debugv Get Storage Access permission")
             //activity.storageHelper.requestStorageAccess()
             Log.d("MyApp", "Debugv Before Folder Picker")
             activity.storageHelper.openFolderPicker(initialPath = FileFullPath(activity, SimpleStorage.externalStoragePath))
             Log.d("MyApp", "Debugv After Folder Picker!")
+            //Log.d("MyApp", "Debugv Create a file using another function, with distinct permissions")
+            //activity.storageHelper.createFile("text/plain", "Test create file")
         } else {
             @Suppress("DEPRECATION")
             StorageChooser.Builder()
