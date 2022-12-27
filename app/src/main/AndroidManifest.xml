@@ -4,6 +4,7 @@
     package="com.lolo.io.onelist">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> // Unnecessary for our needs, see: https://google.github.io/modernstorage/permissions/ -->
 
     <application
         android:name="com.lolo.io.onelist.App"
