@@ -56,4 +56,6 @@
     <string name="storage_chooser_folder_error_toast_text">Error occurred while creating folder. Try again.</string>
     <string name="storage_chooser_text_field_hint_text">Folder Name</string>
     <string name="storage_chooser_text_field_error_text">Empty Folder Name</string>
+    <string name="share_list">Share this list</string>
+    <string name="share_all_lists">Share all lists</string>
 </resources>

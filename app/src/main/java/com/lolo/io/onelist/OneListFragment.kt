@@ -117,6 +117,7 @@ class OneListFragment : Fragment(), ListsCallbacks, ItemsCallbacks, MainActivity
         buttonAddComment.setOnClickListener { switchCommentSection() }
         buttonClearComment.setOnClickListener { addCommentEditText.text.clear() }
         buttonShareList.setOnClickListener { persistence.shareList(selectedList) }
+        buttonShareAllLists.setOnClickListener { persistence.shareAllLists() }
 
         menu_arrow.setOnTouchListener { v, e ->
             if (e.action == MotionEvent.ACTION_DOWN) {
@@ -445,6 +446,7 @@ class OneListFragment : Fragment(), ListsCallbacks, ItemsCallbacks, MainActivity
 
     private fun showEditionButtons() {
         buttonShareList.visibility = View.GONE
+        buttonShareAllLists.visibility = View.GONE
         buttonRemoveList.animShowFlip()
         buttonAddList.animHideFlip(startDelay = BUTTON_ANIM_DURATION)
         buttonEditList.animShowFlip()
@@ -453,6 +455,7 @@ class OneListFragment : Fragment(), ListsCallbacks, ItemsCallbacks, MainActivity
 
     private fun hideEditionButtons() {
         buttonShareList.visibility = View.VISIBLE
+        buttonShareAllLists.visibility = View.VISIBLE
         buttonAddList.animShowFlip()
         buttonRemoveList.animHideFlip(startDelay = BUTTON_ANIM_DURATION)
         buttonEditList.animHideFlip()
