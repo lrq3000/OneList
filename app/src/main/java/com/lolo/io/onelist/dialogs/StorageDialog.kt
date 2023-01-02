@@ -13,18 +13,13 @@ import com.codekidlabs.storagechooser.StorageChooser
 import com.lolo.io.onelist.App
 import com.lolo.io.onelist.MainActivity
 import com.lolo.io.onelist.R
-import com.lolo.io.onelist.util.REQUEST_CODE_OPEN_DOCUMENT
-import com.lolo.io.onelist.util.REQUEST_CODE_OPEN_DOCUMENT_TREE
-import com.lolo.io.onelist.util.withStoragePermission
 import kotlinx.android.synthetic.main.dialog_list_path.view.*
 import java.io.File
 import java.net.URI
 import com.anggrayudi.storage.SimpleStorage
-import com.anggrayudi.storage.file.FileFullPath
-import com.anggrayudi.storage.file.getAbsolutePath
-import com.anggrayudi.storage.file.makeFile
-import com.anggrayudi.storage.file.openOutputStream
+import com.anggrayudi.storage.file.*
 import com.lolo.io.onelist.updates.appContext
+import com.lolo.io.onelist.util.*
 
 
 @SuppressLint("InflateParams")
@@ -87,7 +82,8 @@ fun selectDirectory(activity: MainActivity, onPathChosen: (String) -> Any?) {
             }
             activity.storageHelper.onFolderSelected = { requestCode, folder ->
                 Log.d("MyApp", "Debugv Success Folder Pick! Now saving...")
-                activity.onPathChosenActivityResult(folder.getAbsolutePath(activity)) // tip from https://github.com/anggrayudi/MaterialPreference/blob/5cd9b8653c71fae0314fa2bbf7f71c4c8c8f4104/materialpreference/src/main/java/com/anggrayudi/materialpreference/FolderPreference.kt
+                val uri = folder.getAbsolutePath(activity)
+                activity.onPathChosenActivityResult(uri) // tip from https://github.com/anggrayudi/MaterialPreference/blob/5cd9b8653c71fae0314fa2bbf7f71c4c8c8f4104/materialpreference/src/main/java/com/anggrayudi/materialpreference/FolderPreference.kt
                 //activity.onPathChosenActivityResult = { }
                 Log.d("MyApp", "Debugv Success Folder Pick Save!")
                 Log.d("MyApp", "Debugv Try to create a file testfilename.txt")
@@ -103,11 +99,31 @@ fun selectDirectory(activity: MainActivity, onPathChosen: (String) -> Any?) {
                 } finally {
                     out?.close()
                 }
+                //val path = activity.persistence.defaultPath + "testfilename.txt"
+                val path = "$uri/testfilename.txt"
+                val out2 = DocumentFileCompat.fromFullPath(appContext, path)!!.openOutputStream(appContext)
+                try {
+                    Log.d("MyApp", "Debugv Write test file again on path: $path")
+                    out2!!.write("Second output!".toByteArray(Charsets.UTF_8)) // NPE is catched below
+                    Log.d("MyApp", "Debugv Write test file again successful!")
+                } catch (e: Exception) {
+                    Log.d("MyApp", "Debugv unable to write test file again: " + e.stackTraceToString())
+                } finally {
+                    out?.close()
+                }
             }
             //Log.d("MyApp", "Debugv Get Storage Access permission")
-            //activity.storageHelper.requestStorageAccess()
+            /*
+            activity.storageHelper.requestStorageAccess(
+                    initialPath = FileFullPath(activity, StorageId.PRIMARY, "OneList"), // SimpleStorage.externalStoragePath
+                    expectedStorageType = StorageType.EXTERNAL,
+                    expectedBasePath = "OneList"
+            )
+            */
             Log.d("MyApp", "Debugv Before Folder Picker")
-            activity.storageHelper.openFolderPicker(initialPath = FileFullPath(activity, SimpleStorage.externalStoragePath))
+            activity.storageHelper.openFolderPicker(
+                    initialPath = FileFullPath(activity, StorageId.PRIMARY, "OneList"), // SimpleStorage.externalStoragePath
+            )
             Log.d("MyApp", "Debugv After Folder Picker!")
             //Log.d("MyApp", "Debugv Create a file using another function, with distinct permissions")
             //activity.storageHelper.createFile("text/plain", "Test create file")

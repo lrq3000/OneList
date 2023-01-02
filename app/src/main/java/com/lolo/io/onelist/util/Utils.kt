@@ -3,6 +3,7 @@ package com.lolo.io.onelist.util
 import android.Manifest
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.PermissionToken
@@ -73,6 +74,7 @@ val String?.toUri: Uri?
         if (this.isNullOrBlank() /* || !startsWith("content://") */) throw Exception()
         Uri.parse(this)
     } catch (e: Exception) {
+        Log.d("OneList", "Unable to convert a String to an Uri: " + e.stackTraceToString())
         null
     }
 
