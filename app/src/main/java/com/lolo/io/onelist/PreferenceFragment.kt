@@ -77,7 +77,10 @@ class PreferenceFragment : PreferenceFragmentCompat() {
     private fun displayDefaultPath() {
         this.preferenceScreen.get<Preference>("storage")
                 ?.summary =
-                if (mainActivity.persistence.defaultPath.isNotBlank()) {
+                if (mainActivity.persistence.defaultPath == "Download/OneList") {
+                    getString(R.string.download_storage)
+                }
+                else if (mainActivity.persistence.defaultPath.isNotBlank()) {
                     val uri = mainActivity.persistence.defaultPath.toUri
                     uri?.path?.beautify() ?: mainActivity.persistence.defaultPath
                 }

@@ -62,6 +62,29 @@
         app:layout_constraintTop_toBottomOf="@+id/separator" />
 
     <TextView
+        android:id="@+id/downloadStorageButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:background="?android:attr/selectableItemBackground"
+        app:drawableStartCompat="@drawable/ic_storage_black_24dp"
+        app:drawableLeftCompat="@drawable/ic_storage_black_24dp"
+        android:drawablePadding="8dp"
+        android:gravity="start|center_vertical"
+        android:paddingStart="?android:attr/listPreferredItemPaddingStart"
+        android:paddingLeft="?android:attr/listPreferredItemPaddingLeft"
+        android:paddingTop="?android:attr/listPreferredItemPaddingLeft"
+        android:paddingEnd="?android:attr/listPreferredItemPaddingEnd"
+        android:paddingRight="?android:attr/listPreferredItemPaddingRight"
+        android:paddingBottom="?android:attr/listPreferredItemPaddingRight"
+        android:text="@string/download_storage"
+        android:textAlignment="textStart"
+        android:textAllCaps="false"
+        android:textColor="?android:attr/textColorPrimary"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/appPrivateStorageButton" />
+
+    <TextView
         android:id="@+id/chooseFolderButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -82,7 +105,7 @@
         android:textAllCaps="false"
         android:textColor="?android:attr/textColorPrimary"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/appPrivateStorageButton" />
+        app:layout_constraintTop_toBottomOf="@+id/downloadStorageButton" />
 
 
     <View

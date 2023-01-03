@@ -1,23 +1,26 @@
 package com.lolo.io.onelist.dialogs
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.documentfile.provider.DocumentFile
+import com.anggrayudi.storage.FileWrapper
 import com.codekidlabs.storagechooser.Content
 import com.codekidlabs.storagechooser.StorageChooser
 import com.lolo.io.onelist.App
 import com.lolo.io.onelist.MainActivity
 import com.lolo.io.onelist.R
 import kotlinx.android.synthetic.main.dialog_list_path.view.*
-import java.io.File
-import java.net.URI
-import com.anggrayudi.storage.SimpleStorage
 import com.anggrayudi.storage.file.*
+import com.anggrayudi.storage.media.FileDescription
+import com.anggrayudi.storage.media.MediaStoreCompat
 import com.lolo.io.onelist.updates.appContext
 import com.lolo.io.onelist.util.*
 
@@ -50,6 +53,10 @@ fun displayDialog(view: View, activity: MainActivity, onPathChosen: (String) -> 
             onPathChosen("")
             dialog.dismiss()
         }
+        downloadStorageButton.setOnClickListener {
+            onPathChosen("Download/OneList")
+            dialog.dismiss()
+        }
         chooseFolderButton.setOnClickListener {
             selectDirectory(activity, onPathChosen)
             dialog.dismiss()
@@ -76,18 +83,44 @@ fun selectDirectory(activity: MainActivity, onPathChosen: (String) -> Any?) {
             //    addFlags(Intent.FLAG_GRANT_PREFIX_URI_PERMISSION)
             //}, REQUEST_CODE_OPEN_DOCUMENT_TREE)
             Log.d("MyApp", "Debugv Before SimpleStorageHelper callback func def")
-            activity.storageHelper.onStorageAccessGranted = { requestCode, root ->
-                activity.onPathChosenActivityResult(root.getAbsolutePath(activity))
+            activity.storageHelper.onStorageAccessGranted = { _, root ->
+                Log.d("MyApp", "Debugv Success Folder Pick! Now saving...")
+                val uri = root.getAbsolutePath(activity)
+                activity.onPathChosenActivityResult(uri) // tip from https://github.com/anggrayudi/MaterialPreference/blob/5cd9b8653c71fae0314fa2bbf7f71c4c8c8f4104/materialpreference/src/main/java/com/anggrayudi/materialpreference/FolderPreference.kt
                 //activity.onPathChosenActivityResult = { }
+                Log.d("MyApp", "Debugv Success Folder Pick Save!")
+                Log.d("MyApp", "Debugv Try to make path")
+                val path = activity.persistence.defaultPath + "/testfilename.txt"
+                //val path = "$uri/testfilename.txt"
+                //val outfile2 = DocumentFileCompat.fromFullPath(appContext, path)
+                Log.d("MyApp", "Debugv Try to open TreeUri")
+                //val outfolder = DocumentFile.fromTreeUri(appContext, Uri.parse(uri))
+                val outfolder = DocumentFileCompat.fromUri(appContext, Uri.parse(uri))
+                Log.d("MyApp", "Debugv Try to makefile in tree")
+                val newFile2 = outfolder!!.makeFile(appContext, "testfilenameAA.txt", "text/*")
+                //Log.d("MyApp", "Debugv Try to open SingleUri")
+                val outfile2 = DocumentFile.fromSingleUri(appContext, Uri.parse(path))
+                //Log.d("MyApp", "Debugv Try to open outputstream")
+                val out2 = outfile2!!.openOutputStream(appContext)
+                try {
+                    Log.d("MyApp", "Debugv Write test file again on path: $path")
+                    out2!!.write("Second output!".toByteArray(Charsets.UTF_8)) // NPE is catched below
+                    Log.d("MyApp", "Debugv Write test file again successful!")
+                } catch (e: Exception) {
+                    Log.d("MyApp", "Debugv unable to write test file again: " + e.stackTraceToString())
+                } finally {
+                    out2?.close()
+                }
             }
-            activity.storageHelper.onFolderSelected = { requestCode, folder ->
+            activity.storageHelper.onFolderSelected = { _, folder ->
                 Log.d("MyApp", "Debugv Success Folder Pick! Now saving...")
                 val uri = folder.getAbsolutePath(activity)
                 activity.onPathChosenActivityResult(uri) // tip from https://github.com/anggrayudi/MaterialPreference/blob/5cd9b8653c71fae0314fa2bbf7f71c4c8c8f4104/materialpreference/src/main/java/com/anggrayudi/materialpreference/FolderPreference.kt
                 //activity.onPathChosenActivityResult = { }
                 Log.d("MyApp", "Debugv Success Folder Pick Save!")
-                Log.d("MyApp", "Debugv Try to create a file testfilename.txt")
-                val newFile = folder.makeFile(appContext, "testfilename.txt", "text/*")
+                // Create a new text file using the StorageHelder makeFile() helper function
+                Log.d("MyApp", "Debugv Try to create or append to a file testfilename.txt")
+                val newFile = folder.makeFile(appContext, "testfilename.txt", "text/*", mode=CreateMode.REUSE) // CreateMode.REUSE allows to append if file already exists, otherwise we create it
                 Log.d("MyApp", "Debugv Try to write in the file testfilename.txt")
                 val out = newFile!!.openOutputStream(appContext)
                 try {
@@ -99,9 +132,18 @@ fun selectDirectory(activity: MainActivity, onPathChosen: (String) -> Any?) {
                 } finally {
                     out?.close()
                 }
-                //val path = activity.persistence.defaultPath + "testfilename.txt"
+                Log.d("MyApp", "Debugv Try to make path to reopen (only works after we first opened file using uri directly after being granted permissions)")
+                //val path = activity.persistence.defaultPath + "/testfilename.txt"
                 val path = "$uri/testfilename.txt"
-                val out2 = DocumentFileCompat.fromFullPath(appContext, path)!!.openOutputStream(appContext)
+                Log.d("MyApp", "Debugv Try to open using fromFullPath")
+                val outfile2 = DocumentFileCompat.fromFullPath(appContext, path)
+                //val outfolder = DocumentFile.fromTreeUri(appContext, uri.toUri!!)
+                //Log.d("MyApp", "Debugv Try to makefile in tree")
+                //val newFile2 = outfolder!!.makeFile(appContext, "testfilenameAA.txt", "text/*")
+                //Log.d("MyApp", "Debugv Try to open SingleUri")
+                //val outfile2 = DocumentFile.fromSingleUri(appContext, path.toUri!!)
+                Log.d("MyApp", "Debugv Try to open outputstream")
+                val out2 = outfile2!!.openOutputStream(appContext)
                 try {
                     Log.d("MyApp", "Debugv Write test file again on path: $path")
                     out2!!.write("Second output!".toByteArray(Charsets.UTF_8)) // NPE is catched below
@@ -109,17 +151,30 @@ fun selectDirectory(activity: MainActivity, onPathChosen: (String) -> Any?) {
                 } catch (e: Exception) {
                     Log.d("MyApp", "Debugv unable to write test file again: " + e.stackTraceToString())
                 } finally {
-                    out?.close()
+                    out2?.close()
                 }
             }
-            //Log.d("MyApp", "Debugv Get Storage Access permission")
             /*
+            Log.d("MyApp", "Debugv Access to Downloads/OneList folder, no permission required")
+            val download = DocumentFileCompat.fromPublicFolder(appContext, PublicDirectory.DOWNLOADS, requiresWriteAccess=true)
+            //if (Build.VERSION.SDK_INT >= 29) {
+            Log.d("MyApp", "Debugv Can write to Downloads? " + download!!.canModify(appContext))
+            Log.d("MyApp", "Debugv Access to Downloads/OneList folder, makefolder")
+            val newFolder = download!!.makeFolder(activity, "OneList")
+            Log.d("MyApp", "Debugv Access to Downloads/OneList folder, makefile")
+            val newFile = newFolder!!.makeFile(appContext, "testfilenameDownloads.txt", "text/*")
+            */
+            */
+            Log.d("MyApp", "Debugv Download access alternative, no permission")
+            openDownloadFileFromFilename(appContext, "filepathtest.txt")!!.openOutputStream(appContext)!!.write("OutTest".toByteArray(Charsets.UTF_8))
+            /*
+            Log.d("MyApp", "Debugv Get Storage Access permission")
             activity.storageHelper.requestStorageAccess(
                     initialPath = FileFullPath(activity, StorageId.PRIMARY, "OneList"), // SimpleStorage.externalStoragePath
-                    expectedStorageType = StorageType.EXTERNAL,
-                    expectedBasePath = "OneList"
+                    //expectedStorageType = StorageType.EXTERNAL,
+                    //expectedBasePath = "OneList"
             )
-            */
+             */
             Log.d("MyApp", "Debugv Before Folder Picker")
             activity.storageHelper.openFolderPicker(
                     initialPath = FileFullPath(activity, StorageId.PRIMARY, "OneList"), // SimpleStorage.externalStoragePath
@@ -145,6 +200,23 @@ fun selectDirectory(activity: MainActivity, onPathChosen: (String) -> Any?) {
                         }
                     }
         }
+    }
+}
+
+fun openDownloadFileFromFilename(context: Context, filepath: String): FileWrapper? {
+    // simply use like this: openDownloadFileFromFilename(appContext, "filepathtest.txt")!!.openOutputStream(appContext)!!.write("OutTest".toByteArray(Charsets.UTF_8))
+    val fileDesc = FileDescription(filepath, "OneList", "text/*")
+    //Log.d("MyApp", "Debugv Open filetest in downloads")
+    //val filetest = DocumentFileCompat.createDownloadWithMediaStoreFallback(appContext, fileDesc)
+    return reopenDownloadFile(appContext, fileDesc)
+}
+
+fun reopenDownloadFile(context: Context, file: FileDescription): FileWrapper? {
+    val publicFolder = DocumentFileCompat.fromPublicFolder(context, PublicDirectory.DOWNLOADS, requiresWriteAccess = true)
+    return if (publicFolder == null && Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+        MediaStoreCompat.createDownload(context, file, mode=CreateMode.REUSE)?.let { FileWrapper.Media(it) }
+    } else {
+        publicFolder?.makeFile(context, file.name, file.mimeType, mode=CreateMode.REUSE)?.let { FileWrapper.Document(it) }
     }
 }
 
