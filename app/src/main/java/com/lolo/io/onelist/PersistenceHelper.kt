@@ -4,10 +4,13 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.preference.PreferenceManager
 import android.util.Log
 import android.widget.Toast
 import androidx.documentfile.provider.DocumentFile
+import com.anggrayudi.storage.FileWrapper
+import com.anggrayudi.storage.file.*
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.lolo.io.onelist.model.ItemList
@@ -17,8 +20,9 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.util.*
-import com.anggrayudi.storage.file.DocumentFileCompat
-import com.anggrayudi.storage.file.openOutputStream
+import com.anggrayudi.storage.media.FileDescription
+import com.anggrayudi.storage.media.MediaStoreCompat
+import com.lolo.io.onelist.updates.appContext
 import com.lolo.io.onelist.util.getNewPath
 
 class PersistenceHelper(private val app: Activity) {
@@ -164,17 +168,30 @@ class PersistenceHelper(private val app: Activity) {
 
     private fun getListAsync(listId: Long): Deferred<ItemList> {
         return GlobalScope.async {
-            val path = listsIds[listId]
             val gson = Gson()
             val sp = app.getPreferences(Context.MODE_PRIVATE)
-            val fileUri = path.toUri
-            val list = fileUri?.let { uri ->
-                var ins: InputStream? = null
+            val path = listsIds[listId]
+            val ins =
+                    if (defaultPath == "Download/OneList") {
+                        Log.d("MyApp", "Debugv getList from Download/OneList: " + path)
+                        if (path != null) {
+                            openDownloadFileFromFilename(appContext, path, mode = CreateMode.REUSE, writeAccess = false)?.openInputStream(appContext)
+                        } else {
+                            null
+                        }
+                    } else {
+                        val fileUri = path.toUri
+                        if (fileUri != null) {
+                            App.instance.contentResolver.openInputStream(fileUri)
+                        } else {
+                            null
+                        }
+                    }
+            val list = ins?.let { ins ->
                 try {
-                    ins = App.instance.contentResolver.openInputStream(uri)
                     gson.fromJson(ins!!.reader(), ItemList::class.java)
                 } catch (e: Exception) {
-                    app.runOnUiThread { Toast.makeText(App.instance, app.getString(R.string.error_opening_filepath, uri), Toast.LENGTH_LONG).show() }
+                    app.runOnUiThread { Toast.makeText(App.instance, app.getString(R.string.error_opening_filepath), Toast.LENGTH_LONG).show() }
                     null
                 } finally {
                     ins?.close()
@@ -210,21 +227,28 @@ class PersistenceHelper(private val app: Activity) {
         val json = gson.toJson(list)
         Log.d("MyApp", "Debugv saveList")
         try {
-            val path = defaultPath + list.getNewPath(list.title)
-            //val fileUri = list.path.toUri
-            val fileUri = path.toUri
-            Log.d("MyApp", "Debugv saveList try: " + path.toString())
-            fileUri?.let { uri ->
-                Log.d("MyApp", "Debugv Trying to save list to to " + uri.toString())
-                //val out = DocumentFile.fromSingleUri(app, uri)!!.openOutputStream(app)
-                val out = DocumentFileCompat.fromUri(app, uri)!!.openOutputStream(app)
-                //val out = App.instance.contentResolver.openOutputStream(uri)
+            val out =
+            if (defaultPath == "Download/OneList") {
+                Log.d("MyApp", "Debugv saveList to Download/OneList")
+                openDownloadFileFromFilename(appContext, list.getNewPath(list.title), mode=CreateMode.REPLACE, writeAccess=true)!!.openOutputStream(appContext)
+            } else {
+                // The following is not working
+                val path = defaultPath + list.getNewPath(list.title)
+                Log.d("MyApp", "Debugv saveList try: " + path.toString())
+                //val fileUri = list.path.toUri
+                val fileUri = path.toUri
+                //DocumentFile.fromSingleUri(appContext, fileUri)!!.openOutputStream(appContext)
+                //DocumentFileCompat.fromUri(appContext, fileUri)!!.openOutputStream(appContext)
+                App.instance.contentResolver.openOutputStream(fileUri!!)
+            }
+            Log.d("MyApp", "Debugv saveList just before let block")
+            out?.let { out ->
                 try {
                     Log.d("MyApp", "Debugv saveList try to write")
                     out!!.write(json.toByteArray(Charsets.UTF_8)) // NPE is catched below
                     Log.d("MyApp", "Debugv saveList write successful!")
                 } catch (e: Exception) {
-                    app.runOnUiThread { Toast.makeText(App.instance, app.getString(R.string.error_saving_to_path, uri), Toast.LENGTH_LONG).show() }
+                    app.runOnUiThread { Toast.makeText(App.instance, app.getString(R.string.error_saving_to_path), Toast.LENGTH_LONG).show() }
                     Log.d("MyApp", "Debugv saveList unable to write: " + e.stackTraceToString())
                 } finally {
                     out?.close()
@@ -298,6 +322,26 @@ class PersistenceHelper(private val app: Activity) {
                 editor.apply()
             }
         }
+
+    fun openDownloadFileFromFilename(context: Context, filepath: String, mode: CreateMode, writeAccess: Boolean): FileWrapper? {
+        // simply use like this: openDownloadFileFromFilename(appContext, "filepathtest.txt")!!.openOutputStream(appContext)!!.write("OutTest".toByteArray(Charsets.UTF_8))
+        val fileDesc = FileDescription(filepath, "OneList", "text/*")
+        //Log.d("MyApp", "Debugv Open filetest in downloads")
+        //val filetest = DocumentFileCompat.createDownloadWithMediaStoreFallback(appContext, fileDesc)
+        return reopenDownloadFile(appContext, fileDesc, mode, writeAccess)
+    }
+
+    fun reopenDownloadFile(context: Context, file: FileDescription, mode: CreateMode, writeAccess: Boolean): FileWrapper? {
+        // use CreateMode.REUSE to append or create a new file if none exist, or CreateMode.REPLACE if we want to rewrite the whole file from 0
+        // Note that strangely, only MediaStoreCompat works on Android 10+, and for it to create a document instead of a binary object, it needs to recognize the file extension, such as .json or .txt
+        // If the extension is just .1list, then the file is saved as a binary and the mode REPLACE and REUSE won't work for some reason, a new file will be created each time. If the extension is .json or .txt, then the specified mode is respected.
+        val publicFolder = DocumentFileCompat.fromPublicFolder(context, PublicDirectory.DOWNLOADS, requiresWriteAccess = writeAccess)
+        return if (publicFolder == null && Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+            MediaStoreCompat.createDownload(context, file, mode= mode)?.let { FileWrapper.Media(it) }
+        } else {
+            publicFolder?.makeFile(context, file.name, file.mimeType, mode= mode)?.let { FileWrapper.Document(it) }
+        }
+    }
 
     // Only to handle architecture updates between versions. do not use
     val compat = Compat()
