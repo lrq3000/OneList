@@ -171,10 +171,10 @@ class PersistenceHelper(private val app: Activity) {
             val sp = app.getPreferences(Context.MODE_PRIVATE)
             val path = listsIds[listId]
             val ins =
-                    if (defaultPath == "Download/OneList") {
+                    if (path?.startsWith("Download/OneList") == true) {
                         Log.d("OneList", "Debugv getList from Download/OneList: " + path)
                         if (path != null) {
-                            openDownloadFileFromFilename(appContext, path, mode = CreateMode.REUSE, writeAccess = false)?.openInputStream(appContext)
+                            openDownloadFileFromFilename(appContext, path.substringAfterLast("/"), mode = CreateMode.REUSE, writeAccess = false)?.openInputStream(appContext)
                         } else {
                             null
                         }
@@ -190,6 +190,7 @@ class PersistenceHelper(private val app: Activity) {
                 try {
                     gson.fromJson(ins!!.reader(), ItemList::class.java)
                 } catch (e: Exception) {
+                    Log.d("OneList", "Debugv getList error: " + e.stackTraceToString())
                     app.runOnUiThread { Toast.makeText(App.instance, app.getString(R.string.error_opening_filepath), Toast.LENGTH_LONG).show() }
                     null
                 } finally {
@@ -200,6 +201,7 @@ class PersistenceHelper(private val app: Activity) {
                     val json = File(path).readText()
                     gson.fromJson(json, ItemList::class.java)
                 } catch (e: Exception) {
+                    Log.d("OneList", "Debugv getList error in path.takeIf: " + e.stackTraceToString())
                     app.runOnUiThread { Toast.makeText(App.instance, app.getString(R.string.error_opening_filepath, path), Toast.LENGTH_LONG).show() }
                     null
                 }
@@ -226,16 +228,17 @@ class PersistenceHelper(private val app: Activity) {
         val json = gson.toJson(list)
         Log.d("OneList", "Debugv saveList")
         try {
+            val path = list.path
+            val fileUri = path.toUri
             val out =
-            if (defaultPath == "Download/OneList") {
-                Log.d("OneList", "Debugv saveList to Download/OneList")
+            if (path?.startsWith("Download/OneList") == true) {
+                Log.d("OneList", "Debugv saveList to Download/OneList list uri: " + list.path.toString())
+                assert(list.fileName == path.substringAfterLast("/"))
                 openDownloadFileFromFilename(appContext, list.fileName, mode=CreateMode.REPLACE, writeAccess=true)!!.openOutputStream(appContext)
             } else {
                 // The following is not working
-                val path = defaultPath + list.getNewPath(list.title)
-                Log.d("OneList", "Debugv saveList try: " + path.toString())
-                //val fileUri = list.path.toUri
-                val fileUri = path.toUri
+                //val path = defaultPath + list.getNewPath(list.title)
+                //Log.d("OneList", "Debugv saveList try: " + path.toString())
                 //DocumentFile.fromSingleUri(appContext, fileUri)!!.openOutputStream(appContext)
                 //DocumentFileCompat.fromUri(appContext, fileUri)!!.openOutputStream(appContext)
                 App.instance.contentResolver.openOutputStream(fileUri!!)

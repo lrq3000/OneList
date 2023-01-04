@@ -75,7 +75,7 @@ fun editListDialog(activity: MainActivity, list: ItemList = ItemList(), onPositi
                     Log.d("OneList", "Debugv Create File for new list: uri: " + uri.toString() + " - list filename: " + list.fileName)
                     if (uri.toString() == "Download/OneList") {
                         openDownloadFileFromFilename(activity, list.fileName, mode=CreateMode.REUSE, writeAccess=true)?.let {
-                            list.path = it.uri.toString()
+                            list.path = "Download/OneList/" + list.fileName
                         }
                     } else {
                         DocumentFile.fromTreeUri(activity, uri)?.createFile("text/x-json", list.fileName)?.let {
