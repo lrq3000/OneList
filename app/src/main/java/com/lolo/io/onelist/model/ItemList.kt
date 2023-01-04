@@ -9,7 +9,7 @@ import java.net.URI
 data class ItemList(@SerializedName("title") var title: String = "", @SerializedName("items") val items: MutableList<Item> = arrayListOf(), @SerializedName("stableId") val stableId: Long = System.currentTimeMillis(), @Transient var path: String = "") {
     override fun toString(): String {
         return """
-$title:
+## $title
 
 ${items.joinToString("\n") { "$it" }}
 
@@ -19,7 +19,7 @@ ${App.instance.getString(R.string.app_link)}
     }
     fun toStringNoAd(): String {
         return """
-$title:
+## $title
 
 ${items.joinToString("\n") { "$it" }}
         """.trimIndent()

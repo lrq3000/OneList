@@ -98,7 +98,7 @@ class MainActivity : AppCompatActivity() {
 
             if (requestCode == REQUEST_CODE_OPEN_DOCUMENT_TREE || requestCode == REQUEST_CODE_OPEN_DOCUMENT)
                 data?.data?.let { uri ->
-                    Log.d("MyApp", "Debugv requestCode!")
+                    Log.d("OneList", "Debugv requestCode!")
                     contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
                     onPathChosenActivityResult(uri.toString())
                     onPathChosenActivityResult = { }

@@ -82,105 +82,105 @@ fun selectDirectory(activity: MainActivity, onPathChosen: (String) -> Any?) {
             //activity.startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
             //    addFlags(Intent.FLAG_GRANT_PREFIX_URI_PERMISSION)
             //}, REQUEST_CODE_OPEN_DOCUMENT_TREE)
-            Log.d("MyApp", "Debugv Before SimpleStorageHelper callback func def")
+            Log.d("OneList", "Debugv Before SimpleStorageHelper callback func def")
             activity.storageHelper.onStorageAccessGranted = { _, root ->
-                Log.d("MyApp", "Debugv Success Folder Pick! Now saving...")
+                Log.d("OneList", "Debugv Success Folder Pick! Now saving...")
                 val uri = root.getAbsolutePath(activity)
                 activity.onPathChosenActivityResult(uri) // tip from https://github.com/anggrayudi/MaterialPreference/blob/5cd9b8653c71fae0314fa2bbf7f71c4c8c8f4104/materialpreference/src/main/java/com/anggrayudi/materialpreference/FolderPreference.kt
                 //activity.onPathChosenActivityResult = { }
-                Log.d("MyApp", "Debugv Success Folder Pick Save!")
-                Log.d("MyApp", "Debugv Try to make path")
+                Log.d("OneList", "Debugv Success Folder Pick Save!")
+                Log.d("OneList", "Debugv Try to make path")
                 val path = activity.persistence.defaultPath + "/testfilename.txt"
                 //val path = "$uri/testfilename.txt"
                 //val outfile2 = DocumentFileCompat.fromFullPath(appContext, path)
-                Log.d("MyApp", "Debugv Try to open TreeUri")
+                Log.d("OneList", "Debugv Try to open TreeUri")
                 //val outfolder = DocumentFile.fromTreeUri(appContext, Uri.parse(uri))
                 val outfolder = DocumentFileCompat.fromUri(appContext, Uri.parse(uri))
-                Log.d("MyApp", "Debugv Try to makefile in tree")
+                Log.d("OneList", "Debugv Try to makefile in tree")
                 val newFile2 = outfolder!!.makeFile(appContext, "testfilenameAA.txt", "text/*")
-                //Log.d("MyApp", "Debugv Try to open SingleUri")
+                //Log.d("OneList", "Debugv Try to open SingleUri")
                 val outfile2 = DocumentFile.fromSingleUri(appContext, Uri.parse(path))
-                //Log.d("MyApp", "Debugv Try to open outputstream")
+                //Log.d("OneList", "Debugv Try to open outputstream")
                 val out2 = outfile2!!.openOutputStream(appContext)
                 try {
-                    Log.d("MyApp", "Debugv Write test file again on path: $path")
+                    Log.d("OneList", "Debugv Write test file again on path: $path")
                     out2!!.write("Second output!".toByteArray(Charsets.UTF_8)) // NPE is catched below
-                    Log.d("MyApp", "Debugv Write test file again successful!")
+                    Log.d("OneList", "Debugv Write test file again successful!")
                 } catch (e: Exception) {
-                    Log.d("MyApp", "Debugv unable to write test file again: " + e.stackTraceToString())
+                    Log.d("OneList", "Debugv unable to write test file again: " + e.stackTraceToString())
                 } finally {
                     out2?.close()
                 }
             }
             activity.storageHelper.onFolderSelected = { _, folder ->
-                Log.d("MyApp", "Debugv Success Folder Pick! Now saving...")
+                Log.d("OneList", "Debugv Success Folder Pick! Now saving...")
                 val uri = folder.getAbsolutePath(activity)
                 activity.onPathChosenActivityResult(uri) // tip from https://github.com/anggrayudi/MaterialPreference/blob/5cd9b8653c71fae0314fa2bbf7f71c4c8c8f4104/materialpreference/src/main/java/com/anggrayudi/materialpreference/FolderPreference.kt
                 //activity.onPathChosenActivityResult = { }
-                Log.d("MyApp", "Debugv Success Folder Pick Save!")
+                Log.d("OneList", "Debugv Success Folder Pick Save!")
                 // Create a new text file using the StorageHelder makeFile() helper function
-                Log.d("MyApp", "Debugv Try to create or append to a file testfilename.txt")
+                Log.d("OneList", "Debugv Try to create or append to a file testfilename.txt")
                 val newFile = folder.makeFile(appContext, "testfilename.txt", "text/*", mode=CreateMode.REUSE) // CreateMode.REUSE allows to append if file already exists, otherwise we create it
-                Log.d("MyApp", "Debugv Try to write in the file testfilename.txt")
+                Log.d("OneList", "Debugv Try to write in the file testfilename.txt")
                 val out = newFile!!.openOutputStream(appContext)
                 try {
-                    Log.d("MyApp", "Debugv Write test file...")
+                    Log.d("OneList", "Debugv Write test file...")
                     out!!.write("Lalala".toByteArray(Charsets.UTF_8))
-                    Log.d("MyApp", "Debugv Write test file successful!")
+                    Log.d("OneList", "Debugv Write test file successful!")
                 } catch (e: Exception) {
-                    Log.d("MyApp", "Debugv unable to write test file: " + e.stackTraceToString())
+                    Log.d("OneList", "Debugv unable to write test file: " + e.stackTraceToString())
                 } finally {
                     out?.close()
                 }
-                Log.d("MyApp", "Debugv Try to make path to reopen (only works after we first opened file using uri directly after being granted permissions)")
+                Log.d("OneList", "Debugv Try to make path to reopen (only works after we first opened file using uri directly after being granted permissions)")
                 //val path = activity.persistence.defaultPath + "/testfilename.txt"
                 val path = "$uri/testfilename.txt"
-                Log.d("MyApp", "Debugv Try to open using fromFullPath")
+                Log.d("OneList", "Debugv Try to open using fromFullPath")
                 val outfile2 = DocumentFileCompat.fromFullPath(appContext, path)
                 //val outfolder = DocumentFile.fromTreeUri(appContext, uri.toUri!!)
-                //Log.d("MyApp", "Debugv Try to makefile in tree")
+                //Log.d("OneList", "Debugv Try to makefile in tree")
                 //val newFile2 = outfolder!!.makeFile(appContext, "testfilenameAA.txt", "text/*")
-                //Log.d("MyApp", "Debugv Try to open SingleUri")
+                //Log.d("OneList", "Debugv Try to open SingleUri")
                 //val outfile2 = DocumentFile.fromSingleUri(appContext, path.toUri!!)
-                Log.d("MyApp", "Debugv Try to open outputstream")
+                Log.d("OneList", "Debugv Try to open outputstream")
                 val out2 = outfile2!!.openOutputStream(appContext)
                 try {
-                    Log.d("MyApp", "Debugv Write test file again on path: $path")
+                    Log.d("OneList", "Debugv Write test file again on path: $path")
                     out2!!.write("Second output!".toByteArray(Charsets.UTF_8)) // NPE is catched below
-                    Log.d("MyApp", "Debugv Write test file again successful!")
+                    Log.d("OneList", "Debugv Write test file again successful!")
                 } catch (e: Exception) {
-                    Log.d("MyApp", "Debugv unable to write test file again: " + e.stackTraceToString())
+                    Log.d("OneList", "Debugv unable to write test file again: " + e.stackTraceToString())
                 } finally {
                     out2?.close()
                 }
             }
             /*
-            Log.d("MyApp", "Debugv Access to Downloads/OneList folder, no permission required")
+            Log.d("OneList", "Debugv Access to Downloads/OneList folder, no permission required")
             val download = DocumentFileCompat.fromPublicFolder(appContext, PublicDirectory.DOWNLOADS, requiresWriteAccess=true)
             //if (Build.VERSION.SDK_INT >= 29) {
-            Log.d("MyApp", "Debugv Can write to Downloads? " + download!!.canModify(appContext))
-            Log.d("MyApp", "Debugv Access to Downloads/OneList folder, makefolder")
+            Log.d("OneList", "Debugv Can write to Downloads? " + download!!.canModify(appContext))
+            Log.d("OneList", "Debugv Access to Downloads/OneList folder, makefolder")
             val newFolder = download!!.makeFolder(activity, "OneList")
-            Log.d("MyApp", "Debugv Access to Downloads/OneList folder, makefile")
+            Log.d("OneList", "Debugv Access to Downloads/OneList folder, makefile")
             val newFile = newFolder!!.makeFile(appContext, "testfilenameDownloads.txt", "text/*")
             */
             */
-            Log.d("MyApp", "Debugv Download access alternative, no permission")
-            openDownloadFileFromFilename(appContext, "filepathtest.txt")!!.openOutputStream(appContext)!!.write("OutTest".toByteArray(Charsets.UTF_8))
+            Log.d("OneList", "Debugv Download access alternative, no permission")
+            openDownloadFileFromFilename(appContext, "filepathtest.txt", CreateMode.REUSE, writeAccess=true)!!.openOutputStream(appContext)!!.write("OutTest".toByteArray(Charsets.UTF_8))
             /*
-            Log.d("MyApp", "Debugv Get Storage Access permission")
+            Log.d("OneList", "Debugv Get Storage Access permission")
             activity.storageHelper.requestStorageAccess(
                     initialPath = FileFullPath(activity, StorageId.PRIMARY, "OneList"), // SimpleStorage.externalStoragePath
                     //expectedStorageType = StorageType.EXTERNAL,
                     //expectedBasePath = "OneList"
             )
              */
-            Log.d("MyApp", "Debugv Before Folder Picker")
+            Log.d("OneList", "Debugv Before Folder Picker")
             activity.storageHelper.openFolderPicker(
                     initialPath = FileFullPath(activity, StorageId.PRIMARY, "OneList"), // SimpleStorage.externalStoragePath
             )
-            Log.d("MyApp", "Debugv After Folder Picker!")
-            //Log.d("MyApp", "Debugv Create a file using another function, with distinct permissions")
+            Log.d("OneList", "Debugv After Folder Picker!")
+            //Log.d("OneList", "Debugv Create a file using another function, with distinct permissions")
             //activity.storageHelper.createFile("text/plain", "Test create file")
         } else {
             @Suppress("DEPRECATION")
@@ -200,23 +200,6 @@ fun selectDirectory(activity: MainActivity, onPathChosen: (String) -> Any?) {
                         }
                     }
         }
-    }
-}
-
-fun openDownloadFileFromFilename(context: Context, filepath: String): FileWrapper? {
-    // simply use like this: openDownloadFileFromFilename(appContext, "filepathtest.txt")!!.openOutputStream(appContext)!!.write("OutTest".toByteArray(Charsets.UTF_8))
-    val fileDesc = FileDescription(filepath, "OneList", "text/*")
-    //Log.d("MyApp", "Debugv Open filetest in downloads")
-    //val filetest = DocumentFileCompat.createDownloadWithMediaStoreFallback(appContext, fileDesc)
-    return reopenDownloadFile(appContext, fileDesc)
-}
-
-fun reopenDownloadFile(context: Context, file: FileDescription): FileWrapper? {
-    val publicFolder = DocumentFileCompat.fromPublicFolder(context, PublicDirectory.DOWNLOADS, requiresWriteAccess = true)
-    return if (publicFolder == null && Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
-        MediaStoreCompat.createDownload(context, file, mode=CreateMode.REUSE)?.let { FileWrapper.Media(it) }
-    } else {
-        publicFolder?.makeFile(context, file.name, file.mimeType, mode=CreateMode.REUSE)?.let { FileWrapper.Document(it) }
     }
 }
 

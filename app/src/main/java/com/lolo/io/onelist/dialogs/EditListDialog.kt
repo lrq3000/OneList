@@ -3,6 +3,7 @@ package com.lolo.io.onelist.dialogs
 import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
@@ -11,9 +12,11 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.documentfile.provider.DocumentFile
+import com.anggrayudi.storage.file.CreateMode
 import com.lolo.io.onelist.model.ItemList
 import com.lolo.io.onelist.MainActivity
 import com.lolo.io.onelist.R
+import com.lolo.io.onelist.updates.appContext
 import com.lolo.io.onelist.util.*
 import kotlinx.android.synthetic.main.dialog_edit_list.view.*
 import kotlin.math.abs
@@ -69,8 +72,15 @@ fun editListDialog(activity: MainActivity, list: ItemList = ItemList(), onPositi
                 dialog.dismiss()
 
                 treeUri?.let { uri ->
-                    DocumentFile.fromTreeUri(activity, uri)?.createFile("text/x-json", list.fileName)?.let {
-                        list.path = it.uri.toString()
+                    Log.d("OneList", "Debugv Create File for new list: uri: " + uri.toString() + " - list filename: " + list.fileName)
+                    if (uri.toString() == "Download/OneList") {
+                        openDownloadFileFromFilename(activity, list.fileName, mode=CreateMode.REUSE, writeAccess=true)?.let {
+                            list.path = it.uri.toString()
+                        }
+                    } else {
+                        DocumentFile.fromTreeUri(activity, uri)?.createFile("text/x-json", list.fileName)?.let {
+                            list.path = it.uri.toString()
+                        }
                     }
                 }
 
