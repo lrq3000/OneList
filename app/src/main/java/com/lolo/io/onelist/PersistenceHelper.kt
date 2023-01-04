@@ -172,12 +172,8 @@ class PersistenceHelper(private val app: Activity) {
             val path = listsIds[listId]
             val ins =
                     if (path?.startsWith("Download/OneList") == true) {
-                        Log.d("OneList", "Debugv getList from Download/OneList: " + path)
-                        if (path != null) {
-                            openDownloadFileFromFilename(appContext, path.substringAfterLast("/"), mode = CreateMode.REUSE, writeAccess = false)?.openInputStream(appContext)
-                        } else {
-                            null
-                        }
+                        Log.d("OneList", "Debugv getList from Download/OneList: path: " + path + " fileName: " + path.substringAfterLast("/"))
+                        openDownloadFileFromFilename(appContext, path.substringAfterLast("/"), mode=CreateMode.REUSE, writeAccess=true)?.openInputStream(appContext)
                     } else {
                         val fileUri = path?.toUri
                         if (fileUri != null) {
@@ -188,6 +184,7 @@ class PersistenceHelper(private val app: Activity) {
                     }
             val list = ins?.let { ins ->
                 try {
+                    Log.d("OneList", "Debugv getList from Download/OneList try to read file")
                     gson.fromJson(ins!!.reader(), ItemList::class.java)
                 } catch (e: Exception) {
                     Log.d("OneList", "Debugv getList error: " + e.stackTraceToString())

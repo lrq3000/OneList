@@ -109,6 +109,7 @@ fun withStoragePermission(activity: MainActivity, block: () -> Unit) {
 
 fun openDownloadFileFromFilename(context: Context, filepath: String, mode: CreateMode, writeAccess: Boolean): FileWrapper? {
     // simply use like this: openDownloadFileFromFilename(appContext, "filepathtest.txt")!!.openOutputStream(appContext)!!.write("OutTest".toByteArray(Charsets.UTF_8))
+    // you should always set writeAccess=true, even if you just want to read using openInputStream(), because otherwise a null object will be returned for some reason (access refused) if trying to use writeAccess=false
     val fileDesc = FileDescription(filepath, "OneList", "text/*")
     //Log.d("OneList", "Debugv Open filetest in downloads")
     //val filetest = DocumentFileCompat.createDownloadWithMediaStoreFallback(appContext, fileDesc)
