@@ -143,11 +143,31 @@ class PersistenceHelper(private val app: Activity) {
         try {
             val gson = Gson()
             val fileUri = filePath.toUri
+            Log.d("OneList", "Debugv importList: path: $filePath")
             val list = fileUri?.let { uri ->
                 var ins: InputStream? = null
                 try {
-                    ins = App.instance.contentResolver.openInputStream(uri)
-                    gson.fromJson(ins!!.reader(), ItemList::class.java)
+                    Log.d("OneList", "Debugv importList: try to openInputStream")
+                    val testfile = DocumentFileCompat.fromUri(appContext, uri)
+                    Log.d("OneList", "Debugv importList: testfile: " + testfile.toString())
+                    val testf = testfile?.openInputStream(app) // this returns null for some reason, likely because we lose permission. But this worked ONCE for some reason, and then stopped working.
+                    Log.d("OneList", "Debugv importList: testf: " + testf.toString())
+                    ins =
+                        if (Build.VERSION.SDK_INT >= 29) {
+                            if (filePath.contains("Download/OneList")) {
+                                Log.d("OneList", "Debugv importList from Download/OneList: path: " + filePath + " fileName: " + filePath.substringAfterLast("Download/OneList/"))
+                                openDownloadFileFromFilename(appContext, filePath.substringAfterLast("Download/OneList/"), mode=CreateMode.REUSE, writeAccess=true)?.openInputStream(appContext)
+                            } else {
+                                DocumentFileCompat.fromUri(appContext, uri)!!.openInputStream(appContext)
+                            }
+                        } else {
+                            App.instance.contentResolver.openInputStream(uri)
+                        }
+                    Log.d("OneList", "Debugv importList: openInputStream successful!")
+                    Log.d("OneList", "Debugv importList: openInputStream file handle: " + ins.toString())
+                    val ret = gson.fromJson(ins!!.reader(), ItemList::class.java)
+                    Log.d("OneList", "Debugv importList: reader successful! Returning.")
+                    return ret
                 } catch (e: Exception) {
                     throw Exception()
                 } finally {

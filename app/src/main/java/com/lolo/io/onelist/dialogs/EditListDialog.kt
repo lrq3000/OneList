@@ -16,7 +16,6 @@ import com.anggrayudi.storage.file.CreateMode
 import com.lolo.io.onelist.model.ItemList
 import com.lolo.io.onelist.MainActivity
 import com.lolo.io.onelist.R
-import com.lolo.io.onelist.updates.appContext
 import com.lolo.io.onelist.util.*
 import kotlinx.android.synthetic.main.dialog_edit_list.view.*
 import kotlin.math.abs
@@ -109,12 +108,20 @@ fun editListDialog(activity: MainActivity, list: ItemList = ItemList(), onPositi
         listImportButton.apply {
             visibility = if (isNewList) View.VISIBLE else View.GONE
             setOnClickListener {
+                Log.d("OneList", "Debugv before importList selectFile")
                 selectFile(activity) {
+                    Log.d("OneList", "Debugv after importList selectFile")
                     try {
-                        val imported = activity.persistence.importList(it).apply { path = it }
+                        Log.d("OneList", "Debugv before importList: ${it.toString()}")
+                        val fpath = it.toString()
+                        val imported = activity.persistence.importList(fpath).apply {
+                            path = fpath
+                        }
+                        Log.d("OneList", "Debugv after return import file selected")
                         onPositiveClicked(imported)
                         Toast.makeText(activity, context.getString(R.string.list_added, imported.title), Toast.LENGTH_LONG).show()
                     } catch (e: Exception) {
+                        Log.d("OneList", "Debugv import file failed: " + e.stackTraceToString())
                         Toast.makeText(activity, e.message, Toast.LENGTH_LONG).show()
                     } finally {
                         dialog.dismiss()

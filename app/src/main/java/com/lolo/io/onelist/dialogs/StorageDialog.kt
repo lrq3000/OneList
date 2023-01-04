@@ -1,7 +1,6 @@
 package com.lolo.io.onelist.dialogs
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -11,7 +10,6 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.documentfile.provider.DocumentFile
-import com.anggrayudi.storage.FileWrapper
 import com.codekidlabs.storagechooser.Content
 import com.codekidlabs.storagechooser.StorageChooser
 import com.lolo.io.onelist.App
@@ -19,8 +17,6 @@ import com.lolo.io.onelist.MainActivity
 import com.lolo.io.onelist.R
 import kotlinx.android.synthetic.main.dialog_list_path.view.*
 import com.anggrayudi.storage.file.*
-import com.anggrayudi.storage.media.FileDescription
-import com.anggrayudi.storage.media.MediaStoreCompat
 import com.lolo.io.onelist.updates.appContext
 import com.lolo.io.onelist.util.*
 
@@ -205,7 +201,17 @@ fun selectDirectory(activity: MainActivity, onPathChosen: (String) -> Any?) {
 
 fun selectFile(activity: MainActivity, onPathChosen: (String) -> Any?) {
     withStoragePermission(activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (Build.VERSION.SDK_INT >= 29) {
+            activity.storageHelper.onFileSelected = { _, files ->
+                val file = files.first()
+                Log.d("OneList", "Debugv file selected: ${file.fullName}")
+                onPathChosen(file.getAbsolutePath(activity))
+            }
+            activity.storageHelper.openFilePicker(
+                    allowMultiple = false,
+                    initialPath = FileFullPath(activity, StorageId.PRIMARY, "Download/OneList"), // SimpleStorage.externalStoragePath
+            )
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             activity.onPathChosenActivityResult = onPathChosen
             activity.startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply { type = "*/*" }, REQUEST_CODE_OPEN_DOCUMENT)
         } else {
