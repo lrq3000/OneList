@@ -191,9 +191,9 @@ class PersistenceHelper(private val app: Activity) {
             val sp = app.getPreferences(Context.MODE_PRIVATE)
             val path = listsIds[listId]
             val ins =
-                    if (path?.startsWith("Download/OneList") == true) {
+                    if (path?.contains("Download/OneList") == true) {
                         Log.d("OneList", "Debugv getList from Download/OneList: path: " + path + " fileName: " + path.substringAfterLast("/"))
-                        openDownloadFileFromFilename(appContext, path.substringAfterLast("/"), mode=CreateMode.REUSE, writeAccess=true)?.openInputStream(appContext)
+                        openDownloadFileFromFilename(appContext, path.substringAfterLast("Download/OneList/"), mode=CreateMode.REUSE, writeAccess=true)?.openInputStream(appContext)
                     } else {
                         val fileUri = path?.toUri
                         if (fileUri != null) {
@@ -247,10 +247,11 @@ class PersistenceHelper(private val app: Activity) {
         try {
             val path = list.path
             val fileUri = path.toUri
+            Log.d("OneList", "Debugv saveList to list path: " + list.path.toString())
             val out =
-            if (path?.startsWith("Download/OneList") == true) {
-                Log.d("OneList", "Debugv saveList to Download/OneList list uri: " + list.path.toString())
-                assert(list.fileName == path.substringAfterLast("/"))
+            if (path?.contains("Download/OneList") == true) {
+                Log.d("OneList", "Debugv saveList to Download/OneList")
+                assert(list.fileName == path.substringAfterLast("Download/OneList/"))
                 openDownloadFileFromFilename(appContext, list.fileName, mode=CreateMode.REPLACE, writeAccess=true)!!.openOutputStream(appContext)
             } else {
                 // The following is not working
