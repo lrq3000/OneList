@@ -10,6 +10,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.documentfile.provider.DocumentFile
+import androidx.preference.PreferenceManager
 import com.codekidlabs.storagechooser.Content
 import com.codekidlabs.storagechooser.StorageChooser
 import com.lolo.io.onelist.App
@@ -81,6 +82,16 @@ fun selectDirectory(activity: MainActivity, onPathChosen: (String) -> Any?) {
             Log.d("OneList", "Debugv Before SimpleStorageHelper callback func def")
             activity.storageHelper.onStorageAccessGranted = { _, root ->
                 Log.d("OneList", "Debugv Success Folder Pick! Now saving...")
+                Log.d("OneList", "Debugv Folder Pick New Saving Approach")
+                val preferences = PreferenceManager.getDefaultSharedPreferences(appContext)
+                preferences.edit().putString("path", root.getAbsolutePath(appContext)).apply()
+                Log.d("OneList", "Debugv Folder Pick New File Creation")
+                val preferences2 = PreferenceManager.getDefaultSharedPreferences(appContext)
+                val path2 = preferences2.getString("path", null)
+                val folder = DocumentFileCompat.fromFullPath(appContext, path2!!, requiresWriteAccess = true)
+                // now you can make file on this folder
+                val file = folder?.makeFile(appContext, "notes", "text/plain")
+                Log.d("OneList", "Debugv Folder Pick Saving Old approach")
                 val uri = root.getAbsolutePath(activity)
                 activity.onPathChosenActivityResult(uri) // tip from https://github.com/anggrayudi/MaterialPreference/blob/5cd9b8653c71fae0314fa2bbf7f71c4c8c8f4104/materialpreference/src/main/java/com/anggrayudi/materialpreference/FolderPreference.kt
                 //activity.onPathChosenActivityResult = { }
@@ -163,19 +174,19 @@ fun selectDirectory(activity: MainActivity, onPathChosen: (String) -> Any?) {
             */
             Log.d("OneList", "Debugv Download access alternative, no permission")
             openDownloadFileFromFilename(appContext, "filepathtest.txt", CreateMode.REUSE, writeAccess=true)!!.openOutputStream(appContext)!!.write("OutTest".toByteArray(Charsets.UTF_8))
-            /*
             Log.d("OneList", "Debugv Get Storage Access permission")
             activity.storageHelper.requestStorageAccess(
                     initialPath = FileFullPath(activity, StorageId.PRIMARY, "OneList"), // SimpleStorage.externalStoragePath
                     //expectedStorageType = StorageType.EXTERNAL,
                     //expectedBasePath = "OneList"
             )
-             */
+            /*
             Log.d("OneList", "Debugv Before Folder Picker")
             activity.storageHelper.openFolderPicker(
                     initialPath = FileFullPath(activity, StorageId.PRIMARY, "OneList"), // SimpleStorage.externalStoragePath
             )
             Log.d("OneList", "Debugv After Folder Picker!")
+             */
             //Log.d("OneList", "Debugv Create a file using another function, with distinct permissions")
             //activity.storageHelper.createFile("text/plain", "Test create file")
         } else {
