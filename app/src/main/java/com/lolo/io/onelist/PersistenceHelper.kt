@@ -198,7 +198,7 @@ class PersistenceHelper(private val app: Activity) {
                         if (Build.VERSION.SDK_INT >= 29) {
                             val file = DocumentFileCompat.fromFullPath(appContext, path!!, requiresWriteAccess=false)
                             Log.d("OneList", "Debugv Try to open inputstream")
-                            file!!.openInputStream(appContext)
+                            file?.openInputStream(appContext)
                         } else {
                             val fileUri = path?.toUri
                             if (fileUri != null) {
@@ -250,15 +250,12 @@ class PersistenceHelper(private val app: Activity) {
     }
 
     fun saveList(list: ItemList) {
-        val sp = app.getPreferences(Context.MODE_PRIVATE)
         Log.d("OneList", "Debugv saveList defaultPath: " + defaultPath)
-        val editor = sp.edit()
         val gson = Gson()
         val json = gson.toJson(list)
         Log.d("OneList", "Debugv saveList")
         try {
             val path = list.path
-            val fileUri = path.toUri
             Log.d("OneList", "Debugv saveList to list path: " + list.path)
             val out =
             if (path?.contains("Download/OneList") == true) {
@@ -271,9 +268,9 @@ class PersistenceHelper(private val app: Activity) {
                     //val path = preferences.getString("rootpath", null)
                     val file = DocumentFileCompat.fromFullPath(appContext, path!!, requiresWriteAccess=true)
                     Log.d("OneList", "Debugv Try to open outputstream")
-                    file!!.openOutputStream(appContext, append=false)
+                    file?.openOutputStream(appContext, append=false)
                 } else {
-                    App.instance.contentResolver.openOutputStream(fileUri!!)
+                    App.instance.contentResolver.openOutputStream(path.toUri!!)
                 }
             }
             Log.d("OneList", "Debugv saveList just before let block")
@@ -295,7 +292,11 @@ class PersistenceHelper(private val app: Activity) {
             app.runOnUiThread { Toast.makeText(App.instance, app.getString(R.string.error_saving_to_path, list.path), Toast.LENGTH_LONG).show() }
         }
 
-        // save in prefs anyway
+        Log.d("OneList", "Debugv saveList json: " + json)
+
+        // save in prefs anyway, so we fallback on app private storage copy of the list if the other storage fails or if none is selected
+        val sp = app.getPreferences(Context.MODE_PRIVATE)
+        val editor = sp.edit()
         editor.putString(list.stableId.toString(), json)
         editor.apply()
     }
