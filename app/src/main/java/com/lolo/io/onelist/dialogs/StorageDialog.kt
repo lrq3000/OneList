@@ -83,17 +83,18 @@ fun selectDirectory(activity: MainActivity, onPathChosen: (String) -> Any?) {
             activity.storageHelper.onFolderSelected = { _, root -> // could also use simpleStorageHelper.onStorageAccessGranted()
                 Log.d("OneList", "Debugv Success Folder Pick! Now saving...")
                 Log.d("OneList", "Debugv Folder Pick New Saving Approach")
-                val preferences = PreferenceManager.getDefaultSharedPreferences(appContext)
                 val uri = root.getAbsolutePath(appContext)
+                /* Works but commented because unnecessary for working app, was used for debugging
+                val preferences = PreferenceManager.getDefaultSharedPreferences(appContext)
                 preferences.edit().putString("rootpath", uri).apply()
+                 */
                 Log.d("OneList", "Debugv Folder Pick New File Creation")
-                val preferences2 = PreferenceManager.getDefaultSharedPreferences(appContext)
                 activity.onPathChosenActivityResult(uri) // tip from https://github.com/anggrayudi/MaterialPreference/blob/5cd9b8653c71fae0314fa2bbf7f71c4c8c8f4104/materialpreference/src/main/java/com/anggrayudi/materialpreference/FolderPreference.kt
                 activity.onPathChosenActivityResult = { }
-                val path2 = preferences2.getString("rootpath", null)
+                /* The following below works, it's just commented out to avoid clogging the harddrive because it will continue to append data forever
+                val path2 = preferences.getString("rootpath", null)
                 val folder = DocumentFileCompat.fromFullPath(appContext, path2!!, requiresWriteAccess = true)
                 // now you can make file on this folder
-                val file = folder?.makeFile(appContext, "notes", "text/plain")
                 //val path3 = "$path2/testfile.txt"
                 //val file2 = DocumentFileCompat.fromFullPath(appContext, path3!!, requiresWriteAccess = true) // Don't do it like this, if the file does not exist, trying to openOutputStream() on it will fail. Rather, open the folder, then makeFile with a CreateMode to append.
                 val file2 = folder?.makeFile(appContext, "testfile.txt", "text/plain", mode=CreateMode.REUSE)
@@ -108,6 +109,7 @@ fun selectDirectory(activity: MainActivity, onPathChosen: (String) -> Any?) {
                 } finally {
                     out1?.close()
                 }
+                 */
             }
             //if (Build.VERSION.SDK_INT >= 29) {
             Log.d("OneList", "Debugv Get Storage Access permission")
