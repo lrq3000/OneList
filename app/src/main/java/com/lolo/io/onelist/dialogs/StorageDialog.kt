@@ -74,50 +74,32 @@ fun displayDialog(view: View, activity: MainActivity, onPathChosen: (String) -> 
 
 fun selectDirectory(activity: MainActivity, onPathChosen: (String) -> Any?) {
     withStoragePermission(activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (Build.VERSION.SDK_INT >= 29) {
             activity.onPathChosenActivityResult = onPathChosen
-            //activity.startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
-            //    addFlags(Intent.FLAG_GRANT_PREFIX_URI_PERMISSION)
-            //}, REQUEST_CODE_OPEN_DOCUMENT_TREE)
             Log.d("OneList", "Debugv Before SimpleStorageHelper callback func def")
             activity.storageHelper.onFolderSelected = { _, root -> // could also use simpleStorageHelper.onStorageAccessGranted()
                 Log.d("OneList", "Debugv Success Folder Pick! Now saving...")
                 Log.d("OneList", "Debugv Folder Pick New Saving Approach")
-                val uri = root.getAbsolutePath(appContext)
+                val fpath = root.getAbsolutePath(appContext)
                 /* Works but commented because unnecessary for working app, was used for debugging
                 val preferences = PreferenceManager.getDefaultSharedPreferences(appContext)
-                preferences.edit().putString("rootpath", uri).apply()
+                preferences.edit().putString("defaultPathPref", uri).apply()
                  */
                 Log.d("OneList", "Debugv Folder Pick New File Creation")
-                activity.onPathChosenActivityResult(uri) // tip from https://github.com/anggrayudi/MaterialPreference/blob/5cd9b8653c71fae0314fa2bbf7f71c4c8c8f4104/materialpreference/src/main/java/com/anggrayudi/materialpreference/FolderPreference.kt
+                activity.onPathChosenActivityResult(fpath) // tip from https://github.com/anggrayudi/MaterialPreference/blob/5cd9b8653c71fae0314fa2bbf7f71c4c8c8f4104/materialpreference/src/main/java/com/anggrayudi/materialpreference/FolderPreference.kt
                 activity.onPathChosenActivityResult = { }
-                /* The following below works, it's just commented out to avoid clogging the harddrive because it will continue to append data forever
-                val path2 = preferences.getString("rootpath", null)
-                val folder = DocumentFileCompat.fromFullPath(appContext, path2!!, requiresWriteAccess = true)
-                // now you can make file on this folder
-                //val path3 = "$path2/testfile.txt"
-                //val file2 = DocumentFileCompat.fromFullPath(appContext, path3!!, requiresWriteAccess = true) // Don't do it like this, if the file does not exist, trying to openOutputStream() on it will fail. Rather, open the folder, then makeFile with a CreateMode to append.
-                val file2 = folder?.makeFile(appContext, "testfile.txt", "text/plain", mode=CreateMode.REUSE)
-                Log.d("OneList", "Debugv Try to open outputstream")
-                val out1 = file2!!.openOutputStream(appContext, append=true)
-                try {
-                    Log.d("OneList", "Debugv Write test file again on path: $path2")
-                    out1!!.write("Second output!".toByteArray(Charsets.UTF_8)) // NPE is catched below
-                    Log.d("OneList", "Debugv Write test file again successful!")
-                } catch (e: Exception) {
-                    Log.d("OneList", "Debugv unable to write test file again: " + e.stackTraceToString())
-                } finally {
-                    out1?.close()
-                }
-                 */
             }
-            //if (Build.VERSION.SDK_INT >= 29) {
             Log.d("OneList", "Debugv Get Storage Access permission")
             activity.storageHelper.openFolderPicker(  // We could also use simpleStorageHelper.requestStorageAccess()
                     initialPath = FileFullPath(activity, StorageId.PRIMARY, "OneList"), // SimpleStorage.externalStoragePath
                     //expectedStorageType = StorageType.EXTERNAL,
                     //expectedBasePath = "OneList"
             )
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            activity.onPathChosenActivityResult = onPathChosen
+            activity.startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+                addFlags(Intent.FLAG_GRANT_PREFIX_URI_PERMISSION)
+            }, REQUEST_CODE_OPEN_DOCUMENT_TREE)
         } else {
             @Suppress("DEPRECATION")
             StorageChooser.Builder()
@@ -166,7 +148,7 @@ fun selectFile(activity: MainActivity, onPathChosen: (String) -> Any?) {
                     .apply {
                         show()
                         setOnSelectListener {
-                            if (it.endsWith(".1list")) {
+                            if (it.endsWith(".1list.json.txt")) {
                                 onPathChosen(it)
                             } else {
                                 Toast.makeText(activity, activity.getString(R.string.not_a_1list_file), Toast.LENGTH_LONG).show()

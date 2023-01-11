@@ -125,7 +125,13 @@ class PersistenceHelper(private val app: Activity) {
     fun createListFromUri(uri: Uri): ItemList {
         try {
             val gson = Gson()
-            val content = app.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+            val content =
+                    if (Build.VERSION.SDK_INT >= 29) {
+                        val file = DocumentFileCompat.fromFullPath(appContext, uri.toString()!!, requiresWriteAccess = false)
+                        file!!.openInputStream(appContext)?.bufferedReader()?.use { it.readText() }
+                    } else {
+                        app.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+                    }
             val list = gson.fromJson(content, ItemList::class.java)
             list.path = ""
             require(!listsIds.containsKey(list.stableId)) { app.getString(R.string.list_already_in_your_lists) }
@@ -189,7 +195,7 @@ class PersistenceHelper(private val app: Activity) {
             val sp = app.getPreferences(Context.MODE_PRIVATE)
             val path = listsIds[listId]
             val ins =
-                    if ((path == null) or path!!.isEmpty()) {
+                    if ((path == null) || path!!.isEmpty()) {
                         null
                     } else {
                         if (path?.contains("Download/OneList") == true) {
@@ -261,10 +267,8 @@ class PersistenceHelper(private val app: Activity) {
     }
 
     fun saveList(list: ItemList) {
-        Log.d("OneList", "Debugv saveList defaultPath: " + defaultPath)
         val gson = Gson()
         val json = gson.toJson(list)
-        Log.d("OneList", "Debugv saveList")
         try {
             val path = list.path
             Log.d("OneList", "Debugv saveList to list path: " + list.path)
@@ -276,10 +280,17 @@ class PersistenceHelper(private val app: Activity) {
             } else {
                 if (Build.VERSION.SDK_INT >= 29) {
                     //val preferences = PreferenceManager.getDefaultSharedPreferences(appContext)
-                    //val path = preferences.getString("rootpath", null)
-                    val file = DocumentFileCompat.fromFullPath(appContext, path!!, requiresWriteAccess=true, considerRawFile=true)
+                    //val path = preferences.getString("defaultPathPref", null)
+                    Log.d("OneList", "Debugv saveList SDK_INT >= 29")
+                    var file = DocumentFileCompat.fromFullPath(appContext, path!!, requiresWriteAccess=true, considerRawFile=true)
+                    if ((file == null) || (!file!!.exists())) {  // if file does not exist, we create it
+                        Log.d("OneList", "Debugv saveList file does not exists, create it")
+                        val parentFolderPath = path.substringBeforeLast("/")
+                        val folder = DocumentFileCompat.fromFullPath(appContext, parentFolderPath!!, requiresWriteAccess=true)
+                        file = folder?.makeFile(appContext,path.substringAfterLast("/"), "text/plain", mode=CreateMode.REPLACE)
+                    }
                     Log.d("OneList", "Debugv Try to open outputstream")
-                    file?.recreateFile(appContext)  // erase content first by recreating file. For some reason, DocumentFileCompat.fromFullPath(requiresWriteAccess=true) and openOutputStream(append=false) only open the file in append mode, so we need to recreate the file to truncate its content first
+                    file = file?.recreateFile(appContext)  // erase content first by recreating file. For some reason, DocumentFileCompat.fromFullPath(requiresWriteAccess=true) and openOutputStream(append=false) only open the file in append mode, so we need to recreate the file to truncate its content first
                     file?.openOutputStream(appContext, append=false)
                 } else {
                     App.instance.contentResolver.openOutputStream(path.toUri!!)
@@ -296,6 +307,8 @@ class PersistenceHelper(private val app: Activity) {
                 } catch (e: Exception) {
                     app.runOnUiThread { Toast.makeText(App.instance, app.getString(R.string.error_saving_to_path), Toast.LENGTH_LONG).show() }
                     Log.d("OneList", "Debugv saveList unable to write: " + e.stackTraceToString())
+                    val grantedPaths: Map<String, Set<String>> = DocumentFileCompat.getAccessibleAbsolutePaths(appContext)
+                    Log.d("OneList", "Debugv saveList grantedPaths: " + grantedPaths.toString())
                 } finally {
                     out?.close()
                 }
@@ -304,6 +317,7 @@ class PersistenceHelper(private val app: Activity) {
             }
         } catch (e: Exception) {
             app.runOnUiThread { Toast.makeText(App.instance, app.getString(R.string.error_saving_to_path, list.path), Toast.LENGTH_LONG).show() }
+            Log.d("OneList", "Debugv saveList 2nd try block unable to write: " + e.stackTraceToString())
         }
 
         // save in prefs anyway, so we fallback on app private storage copy of the list if the other storage fails or if none is selected
@@ -409,5 +423,18 @@ class PersistenceHelper(private val app: Activity) {
                 editor.putBoolean(firstLaunchPrefCompat, value)
                 editor.apply()
             }
+    }
+
+    fun updateAllPathsToDefault() {
+        // Fetch list of all lists
+        val lists = getAllLists()
+        // Loop through all lists
+        for (l in lists) {
+            // toString() is overloaded to output the list's title, content and an ad for the software, except if toStringNoAd() is used
+            l.path = "$defaultPath/${l.fileName}"
+            saveList(l)
+        }
+        // Update listsIds immutable Map all at once using the adequate function with our new list of ItemList objects
+        updateListIdsTable(lists)
     }
 }

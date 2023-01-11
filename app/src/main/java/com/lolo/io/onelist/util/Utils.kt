@@ -61,7 +61,7 @@ fun String.beautify(): String {
                 .replaceFirst("""\w*-\w*:""".toRegex(), "sdcard: " )
                 .replace("""/document/\w*-?\w*:.*""".toRegex(), "")
         startsWith("/document/") -> {
-            val ret = if (endsWith(".1list.json")) replaceAfterLast("/", "").removeSuffix("/") else this
+            val ret = if (endsWith(".1list.json.txt")) replaceAfterLast("/", "").removeSuffix("/") else this
             ret.removePrefix("/document/")
                     .replace("primary:", "storage: ")
                     .replaceFirst("""\w*-\w*:""".toRegex(), "sdcard: " )
@@ -71,14 +71,14 @@ fun String.beautify(): String {
 }
 
 val ItemList.notCustomPath
-    get() = path.endsWith("${stableId}.1list.json")
+    get() = path.endsWith("${stableId}.1list.json.txt")
 
-fun ItemList.getNewPath(newTitle: String) = "${path.substringBeforeLast("/")}/${newTitle.removeForbidenChars()}-${stableId}.1list.json"
+fun ItemList.getNewPath(newTitle: String) = "${path.substringBeforeLast("/")}/${newTitle.removeForbidenChars()}-${stableId}.1list.json.txt"
 
-fun ItemList.getNewFileName(newTitle: String) = "${newTitle.removeForbidenChars()}-${stableId}.1list.json"
+fun ItemList.getNewFileName(newTitle: String) = "${newTitle.removeForbidenChars()}-${stableId}.1list.json.txt"
 
 val ItemList.fileName
-    get() = "${title.removeForbidenChars()}-${stableId}.1list.json"
+    get() = "${title.removeForbidenChars()}-${stableId}.1list.json.txt"
 
 val String?.toUri: Uri?
     get() = try {
