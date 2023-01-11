@@ -6,23 +6,21 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.preference.PreferenceManager
+import android.util.JsonReader
 import android.util.Log
 import android.widget.Toast
-import androidx.documentfile.provider.DocumentFile
-import com.anggrayudi.storage.FileWrapper
 import com.anggrayudi.storage.file.*
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.lolo.io.onelist.model.ItemList
+import com.lolo.io.onelist.updates.appContext
+import com.lolo.io.onelist.util.*
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
+import java.io.StringReader
 import java.util.*
-import com.anggrayudi.storage.media.FileDescription
-import com.anggrayudi.storage.media.MediaStoreCompat
-import com.lolo.io.onelist.updates.appContext
-import com.lolo.io.onelist.util.*
 
 class PersistenceHelper(private val app: Activity) {
 
@@ -191,20 +189,24 @@ class PersistenceHelper(private val app: Activity) {
             val sp = app.getPreferences(Context.MODE_PRIVATE)
             val path = listsIds[listId]
             val ins =
-                    if (path?.contains("Download/OneList") == true) {
-                        Log.d("OneList", "Debugv getList from Download/OneList: path: " + path + " fileName: " + path.substringAfterLast("/"))
-                        openDownloadFileFromFilename(appContext, path.substringAfterLast("Download/OneList/"), mode=CreateMode.REUSE, writeAccess=true)?.openInputStream(appContext)
+                    if ((path == null) or path!!.isEmpty()) {
+                        null
                     } else {
-                        if (Build.VERSION.SDK_INT >= 29) {
-                            val file = DocumentFileCompat.fromFullPath(appContext, path!!, requiresWriteAccess=false)
-                            Log.d("OneList", "Debugv Try to open inputstream")
-                            file?.openInputStream(appContext)
+                        if (path?.contains("Download/OneList") == true) {
+                            Log.d("OneList", "Debugv getList from Download/OneList: path: " + path + " fileName: " + path.substringAfterLast("/"))
+                            openDownloadFileFromFilename(appContext, path.substringAfterLast("Download/OneList/"), mode = CreateMode.REUSE, writeAccess = true)?.openInputStream(appContext)
                         } else {
-                            val fileUri = path?.toUri
-                            if (fileUri != null) {
-                                App.instance.contentResolver.openInputStream(fileUri)
+                            if (Build.VERSION.SDK_INT >= 29) {
+                                val file = DocumentFileCompat.fromFullPath(appContext, path!!, requiresWriteAccess = false)
+                                Log.d("OneList", "Debugv Try to open inputstream")
+                                file?.openInputStream(appContext)
                             } else {
-                                null
+                                val fileUri = path?.toUri
+                                if (fileUri != null) {
+                                    App.instance.contentResolver.openInputStream(fileUri)
+                                } else {
+                                    null
+                                }
                             }
                         }
                     }
@@ -218,11 +220,20 @@ class PersistenceHelper(private val app: Activity) {
                     val grantedPaths: Map<String, Set<String>> = DocumentFileCompat.getAccessibleAbsolutePaths(appContext)
                     Log.d("OneList", "Debugv getList grantedPaths: " + grantedPaths.toString())
                     null
+                    /*
+                    val lenientReader = JsonReader(ins!!.reader())
+                    lenientReader.isLenient = true
+                    try {
+                        gson.fromJson(lenientReader, ItemList::class.java)
+                    } catch (e2: Exception) {
+                        null
+                    }
+                    */
                 } finally {
                     ins?.close()
                 }
             } ?: path.takeIf { it?.isNotBlank() == true }?.let {
-                if (Build.VERSION.SDK_INT >= 29) {
+                if (Build.VERSION.SDK_INT < 29) {
                     try {
                         val json = File(path).readText()
                         gson.fromJson(json, ItemList::class.java)
@@ -266,8 +277,9 @@ class PersistenceHelper(private val app: Activity) {
                 if (Build.VERSION.SDK_INT >= 29) {
                     //val preferences = PreferenceManager.getDefaultSharedPreferences(appContext)
                     //val path = preferences.getString("rootpath", null)
-                    val file = DocumentFileCompat.fromFullPath(appContext, path!!, requiresWriteAccess=true)
+                    val file = DocumentFileCompat.fromFullPath(appContext, path!!, requiresWriteAccess=true, considerRawFile=true)
                     Log.d("OneList", "Debugv Try to open outputstream")
+                    file?.recreateFile(appContext)  // erase content first by recreating file. For some reason, DocumentFileCompat.fromFullPath(requiresWriteAccess=true) and openOutputStream(append=false) only open the file in append mode, so we need to recreate the file to truncate its content first
                     file?.openOutputStream(appContext, append=false)
                 } else {
                     App.instance.contentResolver.openOutputStream(path.toUri!!)
@@ -277,7 +289,9 @@ class PersistenceHelper(private val app: Activity) {
             out?.let { out ->
                 try {
                     Log.d("OneList", "Debugv saveList try to write")
-                    out!!.write(json.toByteArray(Charsets.UTF_8)) // NPE is catched below
+                    out!!.write(json.toByteArray(Charsets.UTF_8))
+                    Log.d("OneList", "Debugv saveList json: " + json)
+                    Log.d("OneList", "Debugv savelist json.toBytoArray: " + json.toByteArray(Charsets.UTF_8).decodeToString())
                     Log.d("OneList", "Debugv saveList write successful!")
                 } catch (e: Exception) {
                     app.runOnUiThread { Toast.makeText(App.instance, app.getString(R.string.error_saving_to_path), Toast.LENGTH_LONG).show() }
@@ -291,8 +305,6 @@ class PersistenceHelper(private val app: Activity) {
         } catch (e: Exception) {
             app.runOnUiThread { Toast.makeText(App.instance, app.getString(R.string.error_saving_to_path, list.path), Toast.LENGTH_LONG).show() }
         }
-
-        Log.d("OneList", "Debugv saveList json: " + json)
 
         // save in prefs anyway, so we fallback on app private storage copy of the list if the other storage fails or if none is selected
         val sp = app.getPreferences(Context.MODE_PRIVATE)
