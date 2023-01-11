@@ -59,4 +59,6 @@
     <string name="share_all_lists">Partager toutes les listes</string>
     <string name="force_update_storage">Copier les listes vers le stockage par défaut</string>
     <string name="force_update_storage_summary">Chaque liste a son propre chemin, ex: les listes importées restent là où elles sont. En cliquant ici, une copie de chaque liste sera faite dans le dossier de stockage par défaut</string>
+    <string name="share_markdown">Partager au format markdown</string>
+    <string name="other">Autre</string>
 </resources>
