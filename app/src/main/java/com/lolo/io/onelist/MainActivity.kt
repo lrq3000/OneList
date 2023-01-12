@@ -90,12 +90,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        // Mandatory for Activity, but not for Fragment & ComponentActivity
-        storageHelper.storage.onActivityResult(requestCode, resultCode, data)
-
-        /*
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-
+        if (Build.VERSION.SDK_INT >= 29) {
+            // Mandatory for Activity, but not for Fragment & ComponentActivity
+            storageHelper.storage.onActivityResult(requestCode, resultCode, data)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             if (requestCode == REQUEST_CODE_OPEN_DOCUMENT_TREE || requestCode == REQUEST_CODE_OPEN_DOCUMENT)
                 data?.data?.let { uri ->
                     Log.d("OneList", "Debugv requestCode!")
@@ -104,7 +102,6 @@ class MainActivity : AppCompatActivity() {
                     onPathChosenActivityResult = { }
                 }
         }
-        */
     }
 
     override fun attachBaseContext(newBase: Context) {
