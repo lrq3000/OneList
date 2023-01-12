@@ -46,7 +46,7 @@
         android:drawableStart="@drawable/ic_more_horizontal_accent_light_18dp"
         android:drawableLeft="@drawable/ic_more_horizontal_accent_light_18dp"
         android:drawablePadding="5dp"
-        android:hint="@string/edit_comment"
+        android:hint="@string/item_comment"
         android:importantForAutofill="no"
         android:inputType="textMultiLine|textCapSentences"
         android:minHeight="?android:attr/listPreferredItemHeightSmall"

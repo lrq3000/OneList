@@ -63,5 +63,5 @@
     <string name="force_update_storage_summary">Each list has its own path, e.g., imported lists stay where they are. Clicking this button will create a copy of all currently existing lists into the selected default storage folder</string>
     <string name="share_markdown">Share as markdown</string>
     <string name="other">Other</string>
-    <string name="edit_comment">Edit task\'s comment</string>
+    <string name="item_comment">Task Comment</string>
 </resources>
